@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão banca by welyk</title>
+      <link rel="manifest" href="/gestao/manifest.json">  <!-- 🔥 Caminho absoluto -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/gestao/sw.js');  // 🔥 Caminho absoluto
+    }
+  </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- ... outros metadados ... -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#27293d">
+    <title>Gestão Banca by Welyk</title>
+    <script>
+        // Registra o Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado!');
+                    });
+            });
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e1e2d;
+            color: #e0e0e0;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #27293d; }
+        ::-webkit-scrollbar-thumb { background: #4a4e69; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6a6e9a; }
+        .card, .input-section, .transaction-item, .report-modal-content { background-color: #27293d; }
+        .btn-custom { transition: background-color 0.3s, transform 0.1s, color 0.3s; }
+        .btn-custom:active { transform: scale(0.97); }
+        /* Style for date input icon */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+        }
+        .report-modal {
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div id="app" class="max-w-3xl mx-auto p-4 md:p-6">
+
+        <header class="bg-[#27293d] p-5 rounded-b-2xl shadow-lg text-center mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold">Gestão banca by welyk</h1>
+        </header>
+
+        <main>
+            <!-- Totals Section -->
+            <section id="totals-section" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="card p-4 rounded-xl shadow-md">
+                    <h2 class="text-base text-gray-400 font-medium">Total do Mês</h2>
+                    <p id="total-mes" class="text-2xl md:text-3xl font-extrabold mt-1">R$ 0,00</p>
+                </div>
+                <div class="card p-4 rounded-xl shadow-md">
+                    <h2 class="text-base text-gray-400 font-medium">Total c/ VT</h2>
+                    <p id="total-com-vt" class="text-2xl md:text-3xl font-extrabold mt-1">R$ 0,00</p>
+                </div>
+                <div class="card p-4 rounded-xl shadow-md">
+                    <h2 class="text-base text-gray-400 font-medium">Total s/ VT</h2>
+                    <p id="total-sem-vt" class="text-2xl md:text-3xl font-extrabold mt-1">R$ 0,00</p>
+                </div>
+                <div class="card p-4 rounded-xl shadow-md bg-orange-800/50 border border-orange-600">
+                    <h2 class="text-base text-orange-300 font-medium">Total TAXA VT</h2>
+                    <p id="total-taxa-vt" class="text-2xl md:text-3xl font-extrabold mt-1 text-orange-200">R$ 0,00</p>
+                </div>
+            </section>
+
+            <!-- Input Section -->
+            <section class="input-section p-6 rounded-xl shadow-lg mb-6">
+                <h3 class="text-xl font-bold mb-4">Anotação do Dia</h3>
+                <input type="date" id="date-input" class="w-full bg-[#1e1e2d] text-white p-3 rounded-lg text-lg border-2 border-gray-600 focus:border-blue-500 focus:outline-none transition mb-4">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="input-venda" class="block text-sm font-medium text-gray-300 mb-1">Venda (C/D/P)</label>
+                        <input type="text" id="input-venda" inputmode="decimal" placeholder="0,00" class="w-full bg-[#1e1e2d] text-white p-3 rounded-lg border-2 border-gray-600 focus:border-blue-500 focus:outline-none transition">
+                    </div>
+                     <div>
+                        <label for="input-venda-dinheiro" class="block text-sm font-medium text-gray-300 mb-1">Venda Dinheiro</label>
+                        <input type="text" id="input-venda-dinheiro" inputmode="decimal" placeholder="0,00" class="w-full bg-[#1e1e2d] text-white p-3 rounded-lg border-2 border-gray-600 focus:border-blue-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label for="input-vt" class="block text-sm font-medium text-gray-300 mb-1">VT</label>
+                        <input type="text" id="input-vt" inputmode="decimal" placeholder="0,00" class="w-full bg-[#1e1e2d] text-white p-3 rounded-lg border-2 border-gray-600 focus:border-blue-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label for="input-ppcx" class="block text-sm font-medium text-gray-300 mb-1">PPCX</label>
+                        <input type="text" id="input-ppcx" inputmode="decimal" placeholder="0,00" class="w-full bg-[#1e1e2d] text-white p-3 rounded-lg border-2 border-gray-600 focus:border-blue-500 focus:outline-none transition">
+                    </div>
+                     <div>
+                        <label for="input-taxa-vt" class="block text-sm font-medium text-gray-300 mb-1">TAXA VT</label>
+                        <input type="text" id="input-taxa-vt" inputmode="decimal" placeholder="0,00" class="w-full bg-[#1e1e2d] text-white p-3 rounded-lg border-2 border-gray-600 focus:border-blue-500 focus:outline-none transition">
+                    </div>
+                </div>
+                 <button id="save-button" class="btn-custom w-full mt-6 bg-blue-600 hover:bg-blue-700 font-bold py-3 rounded-lg shadow-sm">Salvar Anotação do Dia</button>
+            </section>
+
+            <!-- History Section -->
+            <section>
+                <h3 class="text-xl font-bold mb-4 px-2">Histórico</h3>
+                <div id="history-list" class="space-y-3">
+                    <p id="empty-history" class="text-gray-400 text-center py-8">Nenhum lançamento ainda.</p>
+                </div>
+            </section>
+            
+            <!-- Action Buttons -->
+            <footer class="mt-8 flex flex-col md:flex-row gap-4 justify-center">
+                 <button id="report-button" class="btn-custom bg-green-600 hover:bg-green-700 font-bold py-3 px-6 rounded-lg shadow-sm">Gerar Relatório</button>
+                 <button id="reset-button" class="btn-custom bg-red-800 hover:bg-red-700 font-bold py-3 px-6 rounded-lg shadow-sm">Zerar Tudo</button>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="report-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div id="report-modal-content" class="report-modal-content w-full max-w-lg p-6 rounded-2xl shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-center flex-1">Relatório do Mês</h2>
+                <button id="close-report-button" class="text-gray-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div id="report-content-inner" class="space-y-2">
+                <!-- Report data will be injected here -->
+            </div>
+            <button id="download-report-button" class="btn-custom w-full mt-6 bg-indigo-600 hover:bg-indigo-700 font-bold py-3 rounded-lg shadow-sm">Gerar Imagem do Relatório</button>
+        </div>
+    </div>
+
+
+    <script>
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(function(registration) {
+               console.log('Service Worker registration successful');
+            }).catch(function(err) {
+               console.log('Service Worker registration failed: ', err);
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elementos do DOM ---
+            const dateInputEl = document.getElementById('date-input');
+            const inputVendaEl = document.getElementById('input-venda');
+            const inputVendaDinheiroEl = document.getElementById('input-venda-dinheiro');
+            const inputVtEl = document.getElementById('input-vt');
+            const inputPpcxEl = document.getElementById('input-ppcx');
+            const inputTaxaVtEl = document.getElementById('input-taxa-vt');
+            const saveButton = document.getElementById('save-button');
+            const historyListEl = document.getElementById('history-list');
+            const resetButton = document.getElementById('reset-button');
+            const totalMesEl = document.getElementById('total-mes');
+            const totalComVtEl = document.getElementById('total-com-vt');
+            const totalSemVtEl = document.getElementById('total-sem-vt');
+            const totalTaxaVtEl = document.getElementById('total-taxa-vt');
+            const reportButton = document.getElementById('report-button');
+            const reportModalEl = document.getElementById('report-modal');
+            const closeReportButton = document.getElementById('close-report-button');
+            const reportContentInnerEl = document.getElementById('report-content-inner');
+            const downloadReportButton = document.getElementById('download-report-button');
+
+            // --- Estado da Aplicação ---
+            let dailyData = {}; 
+
+            // --- Funções Auxiliares ---
+            const formatCurrency = (value) => `R$ ${value.toFixed(2).replace('.', ',')}`;
+            const parseFloatInput = (value) => parseFloat(value.replace(',', '.')) || 0;
+            const formatDateForDisplay = (dateString) => {
+                const [year, month, day] = dateString.split('-');
+                return `${day}/${month}/${year}`;
+            };
+            const getTodayString = () => new Date().toISOString().split('T')[0];
+
+            // --- Funções de Lógica ---
+            const saveData = () => {
+                localStorage.setItem('@dailyData_web_v8', JSON.stringify(dailyData));
+            };
+
+            const loadData = () => {
+                const savedData = localStorage.getItem('@dailyData_web_v8');
+                if (savedData) {
+                    dailyData = JSON.parse(savedData);
+                }
+            };
+
+            const calculateAndUpdateTotals = () => {
+                let totalMes = 0, totalSemVT = 0, totalTaxaVT = 0;
+                const currentMonth = dateInputEl.value.substring(0, 7);
+
+                for (const date in dailyData) {
+                    if (date.startsWith(currentMonth)) {
+                        const day = dailyData[date];
+                        const totalDiaMes = (day.venda || 0) + (day.venda_dinheiro || 0) + (day.ppcx || 0);
+                        
+                        totalMes += totalDiaMes;
+                        totalSemVT += totalDiaMes - (day.vt || 0);
+                        totalTaxaVT += (day.taxa_vt || 0);
+                    }
+                }
+                
+                totalMesEl.textContent = formatCurrency(totalMes);
+                totalComVtEl.textContent = formatCurrency(totalMes); // Total c/ VT é igual ao Total do Mês
+                totalSemVtEl.textContent = formatCurrency(totalSemVT);
+                totalTaxaVtEl.textContent = formatCurrency(totalTaxaVT);
+            };
+            
+            const renderHistory = () => {
+                historyListEl.innerHTML = ''; 
+                const sortedDates = Object.keys(dailyData).sort().reverse();
+
+                if (sortedDates.length === 0) {
+                    historyListEl.innerHTML = '<p id="empty-history" class="text-gray-400 text-center py-8">Nenhum lançamento ainda.</p>';
+                } else {
+                     sortedDates.forEach(date => {
+                        const day = dailyData[date];
+                        const dayTotal = (day.venda || 0) + (day.venda_dinheiro || 0) + (day.ppcx || 0);
+                        const div = document.createElement('div');
+                        div.className = 'transaction-item flex items-center p-4 rounded-xl shadow-md cursor-pointer hover:bg-gray-700 transition';
+                        div.dataset.date = date;
+                        div.innerHTML = `<div class="flex-1"><p class="font-bold text-lg">${formatDateForDisplay(date)}</p></div><div class="text-right"><p class="font-bold text-lg">${formatCurrency(dayTotal)}</p><p class="text-xs text-gray-400">C/D/P:${formatCurrency(day.venda || 0)}|Din:${formatCurrency(day.venda_dinheiro || 0)}|VT:${formatCurrency(day.vt || 0)}|P:${formatCurrency(day.ppcx || 0)}|Taxa:${formatCurrency(day.taxa_vt || 0)}</p></div>`;
+                        historyListEl.appendChild(div);
+                    });
+                }
+            };
+            
+            const populateFormForDate = (dateString) => {
+                const data = dailyData[dateString] || {};
+                inputVendaEl.value = data.venda > 0 ? String(data.venda.toFixed(2)).replace('.', ',') : '';
+                inputVendaDinheiroEl.value = data.venda_dinheiro > 0 ? String(data.venda_dinheiro.toFixed(2)).replace('.', ',') : '';
+                inputVtEl.value = data.vt > 0 ? String(data.vt.toFixed(2)).replace('.', ',') : '';
+                inputPpcxEl.value = data.ppcx > 0 ? String(data.ppcx.toFixed(2)).replace('.', ',') : '';
+                inputTaxaVtEl.value = data.taxa_vt > 0 ? String(data.taxa_vt.toFixed(2)).replace('.', ',') : '';
+                calculateAndUpdateTotals();
+            };
+
+            const updateUI = () => {
+                calculateAndUpdateTotals();
+                renderHistory();
+            };
+
+            const generateReport = () => {
+                let reportTotalComVT = 0, reportTotalSemVT = 0, reportTotalTaxaVT = 0;
+                let diaMaisVenda = { date: null, value: -Infinity };
+                let diaMenosVenda = { date: null, value: Infinity };
+                let diasTrabalhados = 0;
+                let detalhesDiarios = [];
+                const currentMonth = dateInputEl.value.substring(0, 7);
+                const monthlyEntries = Object.entries(dailyData).filter(([date]) => date.startsWith(currentMonth));
+
+                if (monthlyEntries.length === 0) {
+                    alert("Nenhum dado encontrado para o mês selecionado.");
+                    return;
+                }
+                
+                diasTrabalhados = monthlyEntries.length;
+                monthlyEntries.sort((a, b) => a[0].localeCompare(b[0]));
+
+                monthlyEntries.forEach(([date, day]) => {
+                    const totalDiaMes = (day.venda || 0) + (day.venda_dinheiro || 0) + (day.ppcx || 0);
+                    const totalDiaSemVT = totalDiaMes - (day.vt || 0);
+                    
+                    reportTotalComVT += totalDiaMes;
+                    reportTotalSemVT += totalDiaSemVT;
+                    reportTotalTaxaVT += (day.taxa_vt || 0);
+
+                    detalhesDiarios.push({ date: date, total: totalDiaSemVT });
+
+                    if (totalDiaSemVT > diaMaisVenda.value) {
+                        diaMaisVenda = { date, value: totalDiaSemVT };
+                    }
+                    if (totalDiaSemVT < diaMenosVenda.value) {
+                        diaMenosVenda = { date, value: totalDiaSemVT };
+                    }
+                });
+
+                const mediaDiasTrabalhados = diasTrabalhados > 0 ? reportTotalSemVT / diasTrabalhados : 0;
+                
+                let detalhesHTML = '<div class="mt-4 pt-4 border-t border-gray-600"><h3 class="font-bold text-lg mb-2 text-center">Detalhes por Dia (s/ VT)</h3><div id="report-details-list" class="max-h-48 overflow-y-auto pr-2">';
+                detalhesDiarios.forEach(item => {
+                    detalhesHTML += `<div class="flex justify-between text-sm py-1 border-b border-gray-700/50"><span class="text-gray-400">${formatDateForDisplay(item.date)}:</span><span>${formatCurrency(item.total)}</span></div>`;
+                });
+                detalhesHTML += '</div></div>';
+
+                const reportHTML = `
+                    <div class="space-y-2">
+                        <div class="flex justify-between py-2 border-b border-gray-600"><span class="text-gray-300">Total c/ VT:</span><span class="font-bold">${formatCurrency(reportTotalComVT)}</span></div>
+                        <div class="flex justify-between py-2 border-b border-gray-600"><span class="text-gray-300">Total s/ VT:</span><span class="font-bold">${formatCurrency(reportTotalSemVT)}</span></div>
+                        <div class="flex justify-between py-2 border-b border-gray-600"><span class="text-gray-300">Total TAXA VT:</span><span class="font-bold text-orange-400">${formatCurrency(reportTotalTaxaVT)}</span></div>
+                        <div class="flex justify-between py-2 border-b border-gray-600"><span class="text-gray-300">Dias trabalhados:</span><span class="font-bold">${diasTrabalhados}</span></div>
+                        <div class="flex justify-between py-2 border-b border-gray-600"><span class="text-gray-300">Média (s/ VT):</span><span class="font-bold">${formatCurrency(mediaDiasTrabalhados)}</span></div>
+                        <div class="flex justify-between py-2 border-b border-gray-600"><span class="text-gray-300">Dia que mais vendeu:</span><span class="font-bold text-green-400">${diaMaisVenda.date ? formatDateForDisplay(diaMaisVenda.date) : 'N/A'} (${formatCurrency(diaMaisVenda.value)})</span></div>
+                        <div class="flex justify-between py-2"><span class="text-gray-300">Dia que menos vendeu:</span><span class="font-bold text-red-400">${diaMenosVenda.date ? formatDateForDisplay(diaMenosVenda.date) : 'N/A'} (${formatCurrency(diaMenosVenda.value)})</span></div>
+                    </div>
+                    ${detalhesHTML}
+                `;
+                reportContentInnerEl.innerHTML = reportHTML;
+                reportModalEl.classList.remove('hidden');
+            };
+
+
+            // --- Event Listeners ---
+            dateInputEl.addEventListener('input', () => populateFormForDate(dateInputEl.value));
+            saveButton.addEventListener('click', () => {
+                const date = dateInputEl.value;
+                if (!date) { alert("Por favor, selecione uma data."); return; }
+                const data = {
+                    venda: parseFloatInput(inputVendaEl.value),
+                    venda_dinheiro: parseFloatInput(inputVendaDinheiroEl.value),
+                    vt: parseFloatInput(inputVtEl.value),
+                    ppcx: parseFloatInput(inputPpcxEl.value),
+                    taxa_vt: parseFloatInput(inputTaxaVtEl.value),
+                };
+                if (Object.values(data).every(v => v === 0)) {
+                    delete dailyData[date];
+                } else {
+                    dailyData[date] = data;
+                }
+                updateUI();
+                saveData();
+                saveButton.textContent = "Salvo!";
+                saveButton.classList.add('bg-green-600');
+                setTimeout(() => {
+                    saveButton.textContent = "Salvar Anotação do Dia";
+                    saveButton.classList.remove('bg-green-600');
+                }, 1500);
+            });
+            historyListEl.addEventListener('click', (e) => {
+                const item = e.target.closest('.transaction-item');
+                if (item) {
+                    const date = item.dataset.date;
+                    dateInputEl.value = date;
+                    populateFormForDate(date);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            
+            let resetConfirmationTimeout = null;
+            resetButton.addEventListener('click', () => {
+                if (resetButton.dataset.confirming) {
+                    if (resetConfirmationTimeout) {
+                        clearTimeout(resetConfirmationTimeout);
+                        resetConfirmationTimeout = null;
+                    }
+                    dailyData = {};
+                    updateUI();
+                    populateFormForDate(dateInputEl.value);
+                    saveData();
+                    
+                    resetButton.textContent = "Zerar Tudo";
+                    resetButton.classList.remove('bg-yellow-500', 'text-black');
+                    resetButton.classList.add('bg-red-800');
+                    delete resetButton.dataset.confirming;
+                } else {
+                    resetButton.dataset.confirming = 'true';
+                    resetButton.textContent = "Confirmar? Apagar Tudo!";
+                    resetButton.classList.remove('bg-red-800');
+                    resetButton.classList.add('bg-yellow-500', 'text-black');
+                    
+                    resetConfirmationTimeout = setTimeout(() => {
+                        resetButton.textContent = "Zerar Tudo";
+                        resetButton.classList.remove('bg-yellow-500', 'text-black');
+                        resetButton.classList.add('bg-red-800');
+                        delete resetButton.dataset.confirming;
+                        resetConfirmationTimeout = null;
+                    }, 3000);
+                }
+            });
+            
+            reportButton.addEventListener('click', generateReport);
+            closeReportButton.addEventListener('click', () => reportModalEl.classList.add('hidden'));
+            reportModalEl.addEventListener('click', (e) => {
+                if (e.target.id === 'report-modal') reportModalEl.classList.add('hidden');
+            });
+
+            downloadReportButton.addEventListener('click', () => {
+                const reportContentToDownload = document.getElementById('report-modal-content');
+                const reportDetailsList = document.getElementById('report-details-list');
+                
+                // Temporariamente expande a lista para capturar todo o conteúdo
+                if (reportDetailsList) {
+                    reportDetailsList.style.maxHeight = 'none';
+                    reportDetailsList.style.overflowY = 'visible';
+                }
+
+                html2canvas(reportContentToDownload, { 
+                    backgroundColor: '#27293d',
+                    onclone: (document) => {
+                        // Garante que o conteúdo clonado para o canvas esteja visível
+                        const clonedList = document.getElementById('report-details-list');
+                        if(clonedList) {
+                            clonedList.style.maxHeight = 'none';
+                            clonedList.style.overflowY = 'visible';
+                        }
+                    }
+                }).then(canvas => {
+                    // Restaura os estilos originais no modal visível
+                    if (reportDetailsList) {
+                        reportDetailsList.style.maxHeight = '';
+                        reportDetailsList.style.overflowY = '';
+                    }
+
+                    const link = document.createElement('a');
+                    const month = dateInputEl.value.substring(0, 7);
+                    link.download = `relatorio_banca_${month}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+
+            // --- Inicialização ---
+            loadData();
+            dateInputEl.value = getTodayString();
+            updateUI();
+            populateFormForDate(dateInputEl.value);
+        });
+    </script>
+</body>
+</html>

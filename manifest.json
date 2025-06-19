@@ -1,0 +1,21 @@
+{
+  "name": "Gestão Banca by Welyk",
+  "short_name": "GestãoBanca",
+  "start_url": "/gestao/",  
+  "scope": "/gestao/",     
+  "display": "standalone",
+  "background_color": "#1e1e2d",
+  "theme_color": "#27293d",
+  "icons": [
+    {
+      "src": "/gestao/icons/icon-192x192.png", 
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/gestao/icons/icon-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
